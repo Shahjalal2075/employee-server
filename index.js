@@ -82,6 +82,20 @@ async function run() {
       res.send(result);
     })
 
+    app.patch('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const updateEmployee = req.body;
+      console.log(updateEmployee);
+      const updateDoc = {
+        $set: {
+          verify: updateEmployee.verify
+        }
+      }
+      const result = await usersCollectionUsers.updateOne(query, updateDoc);
+      res.send(result);
+    })
+
     app.post('/users', async (req, res) => {
       const user = req.body;
       console.log('new user', user);
