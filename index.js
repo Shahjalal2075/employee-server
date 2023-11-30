@@ -61,6 +61,14 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/users/:role', async (req, res) => {
+      const role = req.params.role;
+      const query = { role: role }
+      const cursor = usersCollectionUsers.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
     app.post('/users', async (req, res) => {
       const user = req.body;
       console.log('new user', user);
