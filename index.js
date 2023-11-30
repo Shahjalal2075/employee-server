@@ -69,6 +69,19 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/users/:role1/:role2', async (req, res) => {
+      const role1 = req.params.role1;
+      const role2 = req.params.role2;
+      const query1 = { role: role1}
+      const query2 = { role: role2}
+      const cursor1 = usersCollectionUsers.find(query1);
+      const cursor2 = usersCollectionUsers.find(query2)
+      const result1 = await cursor1.toArray();
+      const result2 = await cursor2.toArray();
+      const result = result1.concat(result2);
+      res.send(result);
+    })
+
     app.post('/users', async (req, res) => {
       const user = req.body;
       console.log('new user', user);
