@@ -3,6 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -40,6 +41,7 @@ async function run() {
     const usersCollectionUsers = database.collection("users");
     const usersCollectionTestimonials = database.collection("testimonials");
     const usersCollectionWorkSheets = database.collection("workSheets");
+    const usersCollectionSalary = database.collection("salary");
 
     app.post('/jwt', async (req, res) => {
       const user = req.body;
@@ -91,24 +93,31 @@ async function run() {
     }
 
     app.post('/logout', async (req, res) => {
-      const user = req.body;
       res.clearCookie('token', { maxAge: 0 }).send({ success: true });
     })
 
-    app.get('/users/:role/:id',verifyToken,verifyHr, async (req, res) => {
+    app.get('/verify/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email }
+      const cursor = usersCollectionUsers.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.get('/users/:role/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await usersCollectionUsers.findOne(query);
       res.send(result);
     })
 
-    app.get('/users',verifyToken,verifyAdmin, async (req, res) => {
+    app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
       const cursor = usersCollectionUsers.find()
       const result = await cursor.toArray();
       res.send(result);
     })
 
-    app.get('/users/:role',verifyToken,verifyHr, async (req, res) => {
+    app.get('/users/:role', verifyToken,verifyHr, async (req, res) => {
       const role = req.params.role;
       const query = { role: role }
       const cursor = usersCollectionUsers.find(query);
@@ -116,7 +125,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/users/:role1/:role2/:role3',verifyToken,verifyAdmin, async (req, res) => {
+    app.get('/users/:role1/:role2/:role3', verifyToken, verifyAdmin, async (req, res) => {
       const role1 = req.params.role1;
       const role2 = req.params.role2;
       const query1 = { role: role1 }
@@ -130,7 +139,7 @@ async function run() {
       res.send(result);
     })
 
-    app.patch('/users/:email',verifyToken, async (req, res) => {
+    app.patch('/users/:email', async (req, res) => {
       const id = req.params.email;
       const query = { email: id }
       const updateEmployee = req.body;
@@ -145,7 +154,7 @@ async function run() {
       res.send(result);
     })
 
-    app.delete('/users/:id',verifyToken,verifyAdmin, async (req, res) => {
+    app.delete('/users/:id', async (req, res) => {
       const id = req.params.id;
       const cursor = { _id: new ObjectId(id) };
       const result = await usersCollectionUsers.deleteOne(cursor);
@@ -160,6 +169,13 @@ async function run() {
       res.send(result);
     })
 
+    app.post('/worksheets', async (req, res) => {
+      const work = req.body;
+      console.log('new work', work);
+      const result = await usersCollectionWorkSheets.insertOne(work);
+      res.send(result);
+    })
+
     app.get('/worksheets', async (req, res) => {
       const cursor = usersCollectionWorkSheets.find()
       const result = await cursor.toArray();
@@ -171,6 +187,47 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     })
+
+    app.post('/payment', async (req, res) => {
+      const payment = req.body;
+      console.log('new payment', payment);
+      const result = await usersCollectionSalary.insertOne(payment);
+      res.send(result);
+    })
+
+    app.get('/salary', async (req, res) => {
+      const cursor = usersCollectionSalary.find()
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.get('/salary/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email }
+      const cursor = usersCollectionSalary.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    //payment
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const { salary } = req.body;
+
+      const amount = parseInt(salary*100);
+
+      console.log(amount,'amount insite');
+    
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ['card']
+      });
+    
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
 
 
 
