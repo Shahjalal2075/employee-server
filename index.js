@@ -182,6 +182,14 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/worksheets/:name', async (req, res) => {
+      const name = req.params.name;
+      const query = { name: name }
+      const cursor = usersCollectionWorkSheets.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
     app.get('/testimonials', async (req, res) => {
       const cursor = usersCollectionTestimonials.find()
       const result = await cursor.toArray();
