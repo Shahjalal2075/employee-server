@@ -8,7 +8,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: ['http://localhost:5173','https://employee-management-6b961.web.app','https://magical-flavor.surge.sh','https://employee-management-75.surge.sh','https://hotel-1c071.web.app'],
+  origin: ['http://localhost:5173','https://employee-management-75.surge.sh','https://hotel-1c071.web.app'],
   credentials: true
 }));
 app.use(express.json());
